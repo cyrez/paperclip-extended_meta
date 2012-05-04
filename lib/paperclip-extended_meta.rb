@@ -5,8 +5,13 @@ module Paperclip
     alias :original_post_process_styles :post_process_styles
 
     def post_process(*style_args) #:nodoc:
-      original_post_process_styles(*style_args)
-      generate_meta_information
+      return if @queued_for_write[:original].nil?
+      instance.run_paperclip_callbacks(:post_process) do
+        instance.run_paperclip_callbacks(:"#{name}_post_process") do
+          post_process_styles(*style_args)
+          generate_meta_information
+        end
+      end
     end
 
     def generate_meta_information
