@@ -5,30 +5,25 @@ module Paperclip
     alias :original_post_process_styles :post_process_styles
 
     def post_process(*style_args) #:nodoc:
-      return if @queued_for_write[:original].nil?
-      instance.run_paperclip_callbacks(:post_process) do
-        instance.run_paperclip_callbacks(:"#{name}_post_process") do
-          post_process_styles(*style_args)
-          generate_meta_information
-        end
-      end
+      original_post_process_styles(*style_args)
+      generate_meta_information
     end
 
     def generate_meta_information
       meta = {}
       expand_queued(@queued_for_write).each do |style, file|
-        meta[style] = {}
+        meta[style.to_s] = {}
         if style == :original
           begin
             geo = Geometry.from_file(file)
-            meta[style][:width]   = geo.width.to_i
-            meta[style][:height]  = geo.height.to_i
+            meta[style.to_s]['width']   = geo.width.to_i
+            meta[style.to_s]['height']  = geo.height.to_i
           rescue NotIdentifiedByImageMagickError
           end
         end
-        meta[style][:size]    = File.size(file)
+        meta[style.to_s]['size']    = File.size(file)
       end
-      instance_merge(:meta, meta)
+      instance_merge('meta', meta)
     end
 
     # Updates the attachment specific attributes via merge with previous ones
